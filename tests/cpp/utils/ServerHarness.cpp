@@ -7,6 +7,7 @@
 #include <catch2/catch_test_macros.hpp>
 #define CATCH_CONFIG_RUNNER
 #include "ServerHarness.h"
+#include "ast/NetTraceTypes.h"
 #include <fstream>
 #include <rfl/from_generic.hpp>
 #include <unordered_set>
@@ -142,6 +143,10 @@ void ServerHarness::checkConeCommand(const std::string& command, const std::stri
                           .start = entry.location.range.start});
     }
     CHECK(gotStarts == expStarts);
+}
+
+server::TraceSignalResult ServerHarness::traceSignal(const server::TraceSignalParams& params) {
+    return SlangServer::traceSignal(params);
 }
 
 std::shared_ptr<server::SlangDoc> ServerHarness::getDoc(const URI& uri) {

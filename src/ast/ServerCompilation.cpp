@@ -10,6 +10,7 @@
 
 #include "ast/HierarchicalView.h"
 #include "ast/InstanceVisitor.h"
+#include "ast/NetTracer.h"
 #include "lsp/LspClient.h"
 #include "util/Converters.h"
 #include "util/Logging.h"
@@ -135,6 +136,45 @@ std::vector<std::string> ServerCompilation::getInstances(
     }
 
     return {};
+}
+
+std::vector<std::string> ServerCompilation::getTraceStartPaths(
+    const lsp::TextDocumentPositionParams& params) {
+    auto paths = getInstances(params);
+    if (!paths.empty())
+        return paths;
+
+    std::shared_ptr<SlangDoc> doc;
+    for (const auto& document : m_documents) {
+        if (document->getPath() == params.textDocument.uri.getPath()) {
+            doc = document;
+            break;
+        }
+    }
+    if (!doc)
+        return {};
+
+    auto location = toSourceLocation(doc->getBuffer(), params.position, m_sourceManager);
+    if (!location)
+        return {};
+
+    auto analysis = doc->getAnalysis();
+    auto tok = analysis->syntaxes.getWordTokenAt(*location);
+    if (!tok)
+        return {};
+
+    const auto* symbol = analysis->getSymbolAtToken(tok);
+    if (!symbol)
+        return {};
+
+    inst::InstanceVisitor visitor(symbol->location);
+    m_analysis->compilation.getRoot().visit(visitor);
+    return visitor.getInstances();
+}
+
+std::vector<TraceHop> ServerCompilation::traceSignal(const std::string& instancePath) {
+    NetTracer tracer(m_analysis->compilation, m_sourceManager);
+    return tracer.trace(instancePath);
 }
 
 std::vector<lsp::CallHierarchyItem> ServerCompilation::getDocPrepareCallHierarchy(

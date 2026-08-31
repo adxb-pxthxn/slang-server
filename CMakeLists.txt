@@ -293,6 +293,7 @@ add_library(
   src/SystemTaskDocs.cpp
   src/ast/ServerCompilation.cpp
   src/ast/ServerCompilationAnalysis.cpp
+  src/ast/NetTracer.cpp
   src/ast/WcpClient.cpp
   src/document/DefinitionInfo.cpp
   src/document/ShallowAnalysis.cpp

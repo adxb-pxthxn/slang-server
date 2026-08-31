@@ -70,6 +70,8 @@ public:
     // Cone helpers
     void checkPrepareCallHierarchy(const Cursor& cursor, const std::set<std::string>& expected);
 
+    server::TraceSignalResult traceSignal(const server::TraceSignalParams& params);
+
     struct ExpectedConeResult {
         std::string name;
         const Cursor* cursor;

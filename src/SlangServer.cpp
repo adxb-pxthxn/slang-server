@@ -10,6 +10,7 @@
 #include "SlangServer.h"
 
 #include "Config.h"
+#include "ast/NetTraceTypes.h"
 #include "ast/WcpClient.h"
 #include "completions/CompletionContext.h"
 #include "completions/CompletionDispatch.h"
@@ -135,6 +136,9 @@ lsp::InitializeResult SlangServer::getInitialize(const lsp::InitializeParams& pa
 
     // Config modification
     registerCommand<std::string, std::monostate, &SlangServer::addDefine>("slang.addDefine");
+
+    registerCommand<TraceSignalParams, TraceSignalResult, &SlangServer::traceSignal>(
+        "slang.traceSignal");
 
     if (params.workspaceFolders.has_value() && !params.workspaceFolders->empty()) {
         auto folders = params.workspaceFolders.value();
@@ -403,6 +407,29 @@ std::vector<std::string> SlangServer::getInstances(const lsp::TextDocumentPositi
         return {};
     }
     return m_driver->comp->getInstances(params);
+}
+
+TraceSignalResult SlangServer::traceSignal(const TraceSignalParams& params) {
+    if (!m_driver || !m_driver->comp)
+        return {};
+
+    std::vector<std::string> candidates;
+    if (params.instancePath)
+        candidates.push_back(*params.instancePath);
+    else {
+        candidates = m_driver->comp->getTraceStartPaths(lsp::TextDocumentPositionParams{
+            .textDocument = params.textDocument,
+            .position = params.position,
+        });
+    }
+
+    if (candidates.empty())
+        return {};
+
+    if (!params.instancePath && candidates.size() > 1)
+        return TraceSignalResult{.candidates = std::move(candidates)};
+
+    return TraceSignalResult{.hops = m_driver->comp->traceSignal(candidates.front())};
 }
 
 std::vector<std::string> SlangServer::getModulesInFile(const std::string path) {

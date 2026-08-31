@@ -8,6 +8,7 @@
 #pragma once
 
 #include "HierarchicalView.h"
+#include "NetTraceTypes.h"
 #include "ServerCompilationAnalysis.h"
 #include "document/SlangDoc.h"
 #include "lsp/LspClient.h"
@@ -66,6 +67,12 @@ public:
 
     /// Return instances for given doc position
     std::vector<std::string> getInstances(const lsp::TextDocumentPositionParams&);
+
+    /// Follow a net across simple port-renames, starting from a hierarchical RTL path
+    std::vector<TraceHop> traceSignal(const std::string& instancePath);
+
+    /// RTL paths for the net under the cursor, including named port-connection names
+    std::vector<std::string> getTraceStartPaths(const lsp::TextDocumentPositionParams& params);
 
     /// Prepare cone tracing using LSP call hierarchy API
     std::vector<lsp::CallHierarchyItem> getDocPrepareCallHierarchy(

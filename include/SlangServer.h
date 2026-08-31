@@ -12,6 +12,7 @@
 #include "ServerDriver.h"
 #include "SlangLspClient.h"
 #include "ast/HierarchicalView.h"
+#include "ast/NetTraceTypes.h"
 #include "ast/SlangServerWcp.h"
 #include "ast/WcpClient.h"
 #include "document/SlangDoc.h"
@@ -126,6 +127,9 @@ public:
 
     // Return the item at this path
     std::vector<hier::HierItem_t> getScope(const std::string& hierPath);
+
+    /// Follow a net across simple port connections. Requires a full compilation.
+    TraceSignalResult traceSignal(const TraceSignalParams& params);
 
     struct ExpandMacroArgs {
         std::string src;
